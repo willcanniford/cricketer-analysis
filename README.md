@@ -5,6 +5,6 @@ I have built a webscraper using `requests` and `BeautifulSoup` so that I can get
 
 Using the class `Cricketer` ([found here](/Cricketer.py)) I can apply a number of methods to produce summary statistics and rolling averages that can be used to analyse the performance of the player. 
 
-![Top 4](https://github.com/willcanniford/python-cricketer-analysis/blob/master/images/top_4_over_time.jpeg?raw=true)
+![Top 4](https://github.com/willcanniford/python-cricketer-analysis/blob/master/images/big_4_through_captaincy.jpeg?raw=true)
 
-![Conversion Rate](https://github.com/willcanniford/python-cricketer-analysis/blob/master/images/conversion_rate.jpeg?raw=true)
+![Joe Root Test Average Career](https://github.com/willcanniford/python-cricketer-analysis/blob/master/images/joe_root_accumulative_average.jpeg?raw=true)
