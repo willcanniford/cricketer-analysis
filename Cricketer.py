@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 import numpy as np
 
 # Define the class for a player
-class CricketPlayer:
+class Cricketer:
     def __init__(self, innings_by_innings_link):
         self.link = innings_by_innings_link
         self.soup = BeautifulSoup(requests.get(innings_by_innings_link).text, features="html.parser")
@@ -63,3 +63,37 @@ class CricketPlayer:
         rolling_matches = matches.rolling(n_matches).sum()
         rolling_matches['average'] = rolling_matches['score'] / rolling_matches['is_out']
         return(rolling_matches)
+    
+    def accumulative_average(self):
+        innings = self.innings()[self.innings().did_bat].set_index('start_date').loc[:, ['score', 'is_out']]
+        innings.index = pd.to_datetime(innings.index)
+        innings.score = innings.score.astype('int')
+        innings['total_runs'] = innings.score.cumsum()
+        innings['total_dismissals'] = innings.is_out.astype('int').cumsum()
+        innings['running_average'] = innings.total_runs / innings.total_dismissals
+        return(innings)
+    
+    def conversion(self):
+        at_bats = self.innings()[self.innings().did_bat]
+        at_bats['fifty'] = at_bats.score.astype('int').between(50,99, inclusive=True)
+        at_bats['century'] = at_bats.score.astype('int').ge(100)
+        at_bats.set_index('start_date', inplace=True)
+        at_bats.index = pd.to_datetime(at_bats.index)
+        conversion = at_bats[['fifty', 'century']].astype('int').cumsum()
+        conversion['rate'] = conversion['century'] / (conversion['fifty'] + conversion['century'])
+        return(conversion)
+        
+    def yearly_conversion(self):
+        at_bats = self.innings()[self.innings().did_bat]
+        at_bats['fifty'] = at_bats.score.astype('int').between(50,99, inclusive=True)
+        at_bats['century'] = at_bats.score.astype('int').ge(100)
+        at_bats.set_index('start_date', inplace=True)
+        at_bats.index = pd.to_datetime(at_bats.index)
+        yearly = at_bats[['fifty', 'century']].astype('int').resample('A').sum()
+        yearly['rate'] = yearly['century'] / (yearly['fifty'] + yearly['century'])
+        return(yearly)
+    
+    def acc_yearly_conversion(self):
+        ot = self.yearly_conversion()[['fifty', 'century']].cumsum()
+        ot['rate'] = ot['century'] / (ot['fifty'] + ot['century'])
+        return(ot)
