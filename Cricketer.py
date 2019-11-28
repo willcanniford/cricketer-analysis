@@ -9,11 +9,9 @@ class Cricketer:
     def __init__(self, innings_by_innings_link):
         self.link = innings_by_innings_link
         self.soup = BeautifulSoup(requests.get(innings_by_innings_link).text, features="html.parser")
-        
-    def view_raw_html(self):
-        return(self.soup)
     
     def raw_innings(self):
+        '''Search the raw html and return innings table'''
         for caption in self.soup.find_all('caption'):
             if caption.get_text() == 'Innings by innings list':
                 main_table = caption.find_parent('table', {'class': 'engineTable'})
@@ -27,6 +25,7 @@ class Cricketer:
         return(pd.DataFrame(rows, columns=columns))
     
     def innings(self):
+        '''Clean raw_innings() and return pd.DataFrame'''
         raw_innings = self.raw_innings()
         raw_innings['Opposition'] = raw_innings['Opposition'].str.replace('v ', '')
         raw_innings.replace('-', np.nan, inplace=True)
@@ -38,6 +37,7 @@ class Cricketer:
         return(raw_innings[['inns', 'score', 'did_bat', 'is_out', 'overs', 'conc', 'wkts', 'did_bowl', 'ct', 'st', 'opposition', 'ground', 'start_date']])
     
     def batting_summary(self):
+        '''Product summary statistics of entire career'''
         innings = self.innings()
         total_at_bats = innings.did_bat.sum()
         dismissals = innings.is_out.sum()
@@ -48,6 +48,12 @@ class Cricketer:
                              'Average': round(total_runs/dismissals, 4)}, index=['Overall']))
     
     def rolling_average_innings(self, n_innings):
+        '''
+        Return pd.DataFrame of rolling average at innings level 
+        
+        Parameters:
+        n_innings (int): the size of the rolling innings window
+        '''
         innings = self.innings()[self.innings().did_bat].set_index('start_date').loc[:, ['score', 'is_out']]
         innings.index = pd.to_datetime(innings.index)
         innings.score = innings.score.astype('int')
@@ -56,6 +62,12 @@ class Cricketer:
         return(rolling_innings)
     
     def rolling_average_matches(self, n_matches):
+        '''
+        Return pd.DataFrame of rolling average at match level
+        
+        Parameters: 
+        n_matches (int): the size of the rolling match window
+        '''
         matches = self.innings()[self.innings().did_bat].set_index('start_date').loc[:, ['score', 'is_out']]
         matches.score = matches.score.astype('int')
         matches.index = pd.to_datetime(matches.index)
@@ -65,6 +77,7 @@ class Cricketer:
         return(rolling_matches)
     
     def accumulative_average(self):
+        '''Calculate the average over time'''
         innings = self.innings()[self.innings().did_bat].set_index('start_date').loc[:, ['score', 'is_out']]
         innings.index = pd.to_datetime(innings.index)
         innings.score = innings.score.astype('int')
@@ -74,6 +87,7 @@ class Cricketer:
         return(innings)
     
     def conversion(self):
+        '''Calculate fifty/century conversion over time'''
         at_bats = self.innings()[self.innings().did_bat]
         at_bats['fifty'] = at_bats.score.astype('int').between(50,99, inclusive=True)
         at_bats['century'] = at_bats.score.astype('int').ge(100)
@@ -84,6 +98,7 @@ class Cricketer:
         return(conversion)
         
     def yearly_conversion(self):
+        '''Calculate fifty/century conversion for every calendar year of the career'''
         at_bats = self.innings()[self.innings().did_bat]
         at_bats['fifty'] = at_bats.score.astype('int').between(50,99, inclusive=True)
         at_bats['century'] = at_bats.score.astype('int').ge(100)
@@ -94,6 +109,7 @@ class Cricketer:
         return(yearly)
     
     def acc_yearly_conversion(self):
+        '''Accumulative version of yearly_conversion()'''
         ot = self.yearly_conversion()[['fifty', 'century']].cumsum()
         ot['rate'] = ot['century'] / (ot['fifty'] + ot['century'])
         return(ot)
