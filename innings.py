@@ -56,3 +56,13 @@ class Innings():
         clean.append(row.find('div', {"class":"cell commentary"}).text)
         clean = clean + [x.text for x in row.find_all('div', {"class": "cell runs"})]
         return(clean)
+    
+    def fall_of_wickets(self):
+        fall_of_wickets = [x.find('div', {"class": "wrap dnb"}) for x in scorecards[0].find('div', {"class": "scorecard-section batsmen"}).find_all('div', {"class": "flex-row"}) if x.find('div', {"class": "wrap dnb"}) != None] 
+        clean_fow = fall_of_wickets[0].text.replace('Fall of wickets: ', '').split('), ')
+        cleaner_fow = [x.replace('(', '').replace(')', '').split(', ') for x in clean_fow]
+        fow_df = pd.DataFrame([split_fow(x[0]) for x in cleaner_fow], columns = ['wicket', 'runs', 'out_batsman'])
+        fow_df['overs'] = [x[1].replace(' ov', '') for x in cleaner_fow]
+        fow_df['partnership'] =  fow_df['runs'].astype(int) - fow_df['runs'].astype(int).shift(1)
+        fow_df['partnership'] = fow_df['partnership'].fillna(fow_df.loc[0, 'runs'])
+        return(fow_df)
