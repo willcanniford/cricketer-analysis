@@ -25,7 +25,7 @@ class Cricketer:
             
         return(pd.DataFrame(rows, columns=columns))
     
-    def innings(self):
+    def innings(self, include_match_urls = False):
         '''Clean raw_innings() and return pd.DataFrame'''
         raw_innings = self.raw_innings()
         raw_innings['Opposition'] = raw_innings['Opposition'].str.replace('v ', '')
@@ -48,7 +48,13 @@ class Cricketer:
         # Grab the match id from the href 
         raw_innings['match_id'] = [re.compile('match\/([0-9]*).html').search(x.get('href')).group(1) for x in main_table.find_all('a', href = re.compile('.*engine\/match\/.*'))]
         
-        return(raw_innings[['inns', 'score', 'did_bat', 'is_out', 'overs', 'conc', 'wkts', 'did_bowl', 'ct', 'st', 'opposition', 'ground', 'start_date', 'match_id']])
+        raw_innings['match_url'] = self.match_urls()
+        
+        final_innings = raw_innings[['inns', 'score', 'did_bat', 'is_out', 'overs', 'conc', 'wkts', 'did_bowl', 'ct', 'st', 'opposition', 'ground', 'start_date', 'match_id', 'match_url']]
+        
+        final_innings.drop('match_url', inplace=include_match_urls)
+        
+        return(final_innings)
     
     def batting_summary(self):
         '''Product summary statistics of entire career'''
