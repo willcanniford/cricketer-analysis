@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import requests
 from bs4 import BeautifulSoup
+import re 
 
 
 class Innings():
@@ -57,11 +58,18 @@ class Innings():
         clean = clean + [x.text for x in row.find_all('div', {"class": "cell runs"})]
         return(clean)
     
+    def split_fow(row):
+        fow_re = re.compile('^([0-9]*)\-([0-9]*) (.*)$').search(row)
+        wickets = fow_re.group(1)
+        runs = fow_re.group(2)
+        batsman = fow_re.group(3)
+        return([wickets, runs, batsman])
+    
     def fall_of_wickets(self):
         fall_of_wickets = [x.find('div', {"class": "wrap dnb"}) for x in scorecards[0].find('div', {"class": "scorecard-section batsmen"}).find_all('div', {"class": "flex-row"}) if x.find('div', {"class": "wrap dnb"}) != None] 
         clean_fow = fall_of_wickets[0].text.replace('Fall of wickets: ', '').split('), ')
         cleaner_fow = [x.replace('(', '').replace(')', '').split(', ') for x in clean_fow]
-        fow_df = pd.DataFrame([split_fow(x[0]) for x in cleaner_fow], columns = ['wicket', 'runs', 'out_batsman'])
+        fow_df = pd.DataFrame([self.split_fow(x[0]) for x in cleaner_fow], columns = ['wicket', 'runs', 'out_batsman'])
         fow_df['overs'] = [x[1].replace(' ov', '') for x in cleaner_fow]
         fow_df['partnership'] =  fow_df['runs'].astype(int) - fow_df['runs'].astype(int).shift(1)
         fow_df['partnership'] = fow_df['partnership'].fillna(fow_df.loc[0, 'runs'])
