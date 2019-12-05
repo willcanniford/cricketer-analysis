@@ -3,6 +3,7 @@ import requests
 import pandas as pd
 from bs4 import BeautifulSoup
 import numpy as np
+import re
 
 # Define the class for a player
 class Cricketer:
@@ -29,12 +30,25 @@ class Cricketer:
         raw_innings = self.raw_innings()
         raw_innings['Opposition'] = raw_innings['Opposition'].str.replace('v ', '')
         raw_innings.replace('-', np.nan, inplace=True)
+        
+        # Clean the column names 
         raw_innings.columns = raw_innings.columns.str.lower().str.replace(' ', '_')
+        
+        # Create boolean flags for various metrics
         raw_innings['is_out'] = raw_innings.score.astype('str').apply(lambda x: False if x in ['nan', 'DNB'] else False if '*' in x else True)
         raw_innings['did_bowl'] = raw_innings.overs.astype('str').apply(lambda x: False if x in ['nan', 'DNB'] else True)
         raw_innings['did_bat'] = raw_innings.score.str.replace('*', '').astype('str').apply(lambda x: True if x.isnumeric() else False)
-        raw_innings['score'] = raw_innings['score'].str.replace('*', '')
-        return(raw_innings[['inns', 'score', 'did_bat', 'is_out', 'overs', 'conc', 'wkts', 'did_bowl', 'ct', 'st', 'opposition', 'ground', 'start_date']])
+        raw_innings['score'] = raw_innings['score'].str.replace('*', '') # Remove the not out flag 
+        
+        # Grab the main table
+        for caption in self.soup.find_all('caption'):
+            if caption.get_text() == 'Innings by innings list':
+                main_table = caption.find_parent('table', {'class': 'engineTable'})
+        
+        # Grab the match id from the href 
+        raw_innings['match_id'] = [re.compile('match\/([0-9]*).html').search(x.get('href')).group(1) for x in main_table.find_all('a', href = re.compile('.*engine\/match\/.*'))]
+        
+        return(raw_innings[['inns', 'score', 'did_bat', 'is_out', 'overs', 'conc', 'wkts', 'did_bowl', 'ct', 'st', 'opposition', 'ground', 'start_date', 'match_id']])
     
     def batting_summary(self):
         '''Product summary statistics of entire career'''
@@ -113,3 +127,13 @@ class Cricketer:
         ot = self.yearly_conversion()[['fifty', 'century']].cumsum()
         ot['rate'] = ot['century'] / (ot['fifty'] + ot['century'])
         return(ot)
+    
+    def match_urls(self):
+        '''Find and generate absolute links to all matches'''
+        for caption in self.soup.find_all('caption'):
+            if caption.get_text() == 'Innings by innings list':
+                main_table = caption.find_parent('table', {'class': 'engineTable'})
+        
+        base_url = 'https://www.espncricinfo.com'
+        match_links = [base_url + x.get('href') for x in main_table.find_all('a', href = re.compile('.*engine\/match\/.*'))]
+        return(match_links)
