@@ -1,4 +1,4 @@
-from Cricketer import Cricketer
+from classes.Cricketer import Cricketer
 
 joe_root = 'http://stats.espncricinfo.com/ci/engine/player/303669.html?class=1;template=results;type=allround;view=innings'
 
