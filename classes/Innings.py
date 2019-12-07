@@ -58,7 +58,7 @@ class Innings():
         clean = clean + [x.text for x in row.find_all('div', {"class": "cell runs"})]
         return(clean)
     
-    def split_fow(row):
+    def split_fow(self, row):
         fow_re = re.compile('^([0-9]*)\-([0-9]*) (.*)$').search(row)
         wickets = fow_re.group(1)
         runs = fow_re.group(2)
@@ -66,7 +66,7 @@ class Innings():
         return([wickets, runs, batsman])
     
     def fall_of_wickets(self):
-        fall_of_wickets = [x.find('div', {"class": "wrap dnb"}) for x in scorecards[0].find('div', {"class": "scorecard-section batsmen"}).find_all('div', {"class": "flex-row"}) if x.find('div', {"class": "wrap dnb"}) != None] 
+        fall_of_wickets = [x.find('div', {"class": "wrap dnb"}) for x in self.raw_html.find('div', {"class": "scorecard-section batsmen"}).find_all('div', {"class": "flex-row"}) if x.find('div', {"class": "wrap dnb"}) != None] 
         clean_fow = fall_of_wickets[0].text.replace('Fall of wickets: ', '').split('), ')
         cleaner_fow = [x.replace('(', '').replace(')', '').split(', ') for x in clean_fow]
         fow_df = pd.DataFrame([self.split_fow(x[0]) for x in cleaner_fow], columns = ['wicket', 'runs', 'out_batsman'])
