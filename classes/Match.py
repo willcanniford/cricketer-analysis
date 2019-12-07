@@ -11,6 +11,7 @@ from .Innings import Innings
 class Match():
     def __init__(self, match_url):
         self.url = match_url
+        self.id = re.compile('.*\/([0-9]*).html').search(self.url).group(1)
         self.soup = BeautifulSoup(requests.get(self.url).text, features="html.parser")
         self.innings_soup = self.soup.find_all('article', {"class": "sub-module scorecard"})
         self.n_innings = len(self.innings_soup)
