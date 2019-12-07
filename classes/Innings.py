@@ -1,3 +1,4 @@
+# Imports
 import numpy as np 
 import pandas as pd 
 import matplotlib.pyplot as plt
@@ -77,3 +78,26 @@ class Innings():
         fow_df['partnership'] =  fow_df['runs'].astype(int) - fow_df['runs'].astype(int).shift(1)
         fow_df['partnership'] = fow_df['partnership'].fillna(fow_df.loc[0, 'runs'])
         return(fow_df)
+    
+    def total_balls(self, overs):
+        '''Calculate total balls bowled from overs'''
+        grouping_re = re.compile('^([0-9]*)\.([0-5]*)$').search(overs)
+        if grouping_re == None:
+            return(int(overs) * 6)
+        else: 
+            overs = int(grouping_re.group(1)) * 6
+            balls = int(grouping_re.group(2))
+            return(overs + balls)
+    
+    def bowling(self):
+        '''Show the bowling figures for the innings'''
+        bowling_section = self.raw_html.find('div', {'class':'scorecard-section bowling'})
+        bowling_headers = [x.text for x in bowling_section.find('thead').find_all('th')]
+        bowling_body = pd.DataFrame([[y.text for y in x.find_all('td')] for x in bowling_section.find('tbody').find_all('tr')])
+        bowling_body.columns = bowling_headers
+        bowling_body.drop('', inplace=True, axis=1)
+        bowling_body['total_balls'] = bowling_body.O.apply(self.total_balls)
+        bowling_body['strike_rate'] = bowling_body.total_balls / bowling_body.W.astype(int)
+        # Check the calculated economy against the scraped
+        bowling_body['economy'] = bowling_body.R.astype(int) / bowling_body.total_balls * 6 
+        return(bowling_body)
