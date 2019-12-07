@@ -51,6 +51,12 @@ class Innings():
         inningsdf['batsman'] = inningsdf['batsman'].str.replace('†', '')
         inningsdf['batsman'] = inningsdf['batsman'].str.replace('\(c\)', '')
         
+        player_links = [x.select('a[name*=cricket:game:scorecard:player]')[0].get('href') for x in batting]
+        player_ids = [re.compile('.*\/([0-9]*).html').search(y).group(1) for y in player_links]
+        
+        inningsdf['player_link'] = player_links
+        inningsdf['player_id'] = player_ids
+        
         return(inningsdf)
     
     def clean_batting_row(self, row):
@@ -98,6 +104,11 @@ class Innings():
         bowling_body.drop('', inplace=True, axis=1)
         bowling_body['total_balls'] = bowling_body.O.apply(self.total_balls)
         bowling_body['strike_rate'] = bowling_body.total_balls / bowling_body.W.astype(int)
+        
         # Check the calculated economy against the scraped
         bowling_body['economy'] = bowling_body.R.astype(int) / bowling_body.total_balls * 6 
+        
+        # Find the player_id and link for each bowler
+        bowling_body['player_id'] = [re.compile('.*\/([0-9]*).html').search(x.get('href')).group(1) for x in bowling_section.find_all('a')]
+        bowling_body['player_link'] = [x.get('href') for x in bowling_section.find_all('a')]
         return(bowling_body)
