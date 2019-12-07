@@ -66,8 +66,11 @@ class Innings():
         return([wickets, runs, batsman])
     
     def fall_of_wickets(self):
-        fall_of_wickets = [x.find('div', {"class": "wrap dnb"}) for x in self.raw_html.find('div', {"class": "scorecard-section batsmen"}).find_all('div', {"class": "flex-row"}) if x.find('div', {"class": "wrap dnb"}) != None] 
-        clean_fow = fall_of_wickets[0].text.replace('Fall of wickets: ', '').split('), ')
+        dnb_rows = [x.find('div', {"class": "wrap dnb"}) for x in self.raw_html.find('div', {"class": "scorecard-section batsmen"}).find_all('div', {"class": "flex-row"}) if x.find('div', {"class": "wrap dnb"}) != None] 
+        
+        # Specify that we want the fall of wickets row and not the did not bat list
+        fall_of_wickets = [x.text for x in dnb_rows if x.text.find('Fall of wickets') != -1][0]
+        clean_fow = fall_of_wickets.replace('Fall of wickets: ', '').split('), ')
         cleaner_fow = [x.replace('(', '').replace(')', '').split(', ') for x in clean_fow]
         fow_df = pd.DataFrame([self.split_fow(x[0]) for x in cleaner_fow], columns = ['wicket', 'runs', 'out_batsman'])
         fow_df['overs'] = [x[1].replace(' ov', '') for x in cleaner_fow]
