@@ -55,3 +55,14 @@ class Match():
             return
         
         return(Innings(raw_html))
+    
+    def select_innings(self, innings_int):
+        '''Get an Innings object for a given innings'''
+        try:
+            raw_html = self.innings_soup[innings_int - 1]
+        except:
+            innings_message = 'There is 1 inning available' if self.n_innings == 1 else 'There are %d innings available' % self.n_innings
+            print('We could not find that innings for this match. %s.' % innings_message)
+            return
+        
+        return(Innings(raw_html))
