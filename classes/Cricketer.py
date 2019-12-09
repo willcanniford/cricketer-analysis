@@ -4,6 +4,8 @@ import pandas as pd
 from bs4 import BeautifulSoup
 import numpy as np
 import re
+from .Match import Match
+
 
 # Define the class for a player
 class Cricketer:
@@ -147,3 +149,14 @@ class Cricketer:
         base_url = 'https://www.espncricinfo.com'
         match_links = [base_url + x.get('href') for x in main_table.find_all('a', href = re.compile('.*engine\/match\/.*'))]
         return(match_links)
+    
+    def get_test_matches(self):
+        '''Create Match objects for every match in the innings by innings list'''
+        matches = {}
+        
+        # Loop through the distinct match urls and save to dictionary
+        for match_url in set(self.match_urls()):
+            obj = Match(match_url)
+            matches[obj.id] = obj
+            
+        return(matches)
