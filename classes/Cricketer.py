@@ -9,9 +9,14 @@ from .Match import Match
 
 # Define the class for a player
 class Cricketer:
-    def __init__(self, innings_by_innings_link):
-        self.link = innings_by_innings_link
-        self.soup = BeautifulSoup(requests.get(innings_by_innings_link).text, features="html.parser")
+    def __init__(self, player_id):
+        self.id = str(player_id)
+        if self.id:
+            self.base_player_url = 'http://www.espncricinfo.com/ci/content/player/%s.html' % self.id
+            self.test_innings_by_innings_url = 'http://stats.espncricinfo.com/ci/engine/player/%s.html?class=1;template=results;type=allround;view=innings' % self.id
+        
+        if self.test_innings_by_innings_url:
+            self.soup = BeautifulSoup(requests.get(self.test_innings_by_innings_url).text, features="html.parser")
     
     def raw_innings(self):
         '''Search the raw html and return innings table'''
