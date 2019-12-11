@@ -11,11 +11,10 @@ a.add_argument("--player_id", action="store", type=str, required=True)
 # Define those arguments as variables for use in the script
 arguments = a.parse_args()
 
+rabada_id = arguments.player_id 
 
-base_innings_by_innings = 'http://stats.espncricinfo.com/ci/engine/player/%s.html?class=1;template=results;type=allround;view=innings'
-rabada_id = arguments.player_id #'550215'
+rabada = Cricketer(rabada_id)
 
-rabada = Cricketer(base_innings_by_innings % rabada_id)
 name_script = [x.text for x in rabada.soup.find_all('script') if x.text.find('Test matches:All-round records') >= 0][0]
 name = re.compile('.*Test matches\:All\-round records:(.*)\"\;.*').search(name_script).group(1)
 
@@ -23,6 +22,10 @@ name = re.compile('.*Test matches\:All\-round records:(.*)\"\;.*').search(name_s
 print('='*len(name))
 print(name)
 print('='*len(name) + '\n')
+
+print(rabada.base_player_url)
+print(rabada.test_innings_by_innings_url)
+print('\n')
 
 rabada_innings = rabada.innings()
 rabada_bowling = rabada_innings[rabada_innings.did_bowl].copy()
@@ -52,6 +55,8 @@ conc = rabada_bowling.conc.astype(int).sum()
 wkts = rabada_bowling.wkts.astype(int).sum()
 total_balls = final.total_balls.astype(int).sum()
 
+print('Test match bowling summary:')
+print('---------------------------')
 print('Total runs conceeded: %d' % conc)
 print('Total wickets: %d' % wkts)
 print('Total balls bowled: %d' % total_balls)
