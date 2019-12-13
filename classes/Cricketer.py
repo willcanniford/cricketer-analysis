@@ -7,6 +7,16 @@ import re
 from .Match import Match
 
 
+def total_balls(overs):
+        '''Calculate total balls bowled from overs'''
+        grouping_re = re.compile('^([0-9]*)\.([0-5]*)$').search(overs)
+        if grouping_re == None:
+            return(int(overs) * 6)
+        else: 
+            overs = int(grouping_re.group(1)) * 6
+            balls = int(grouping_re.group(2))
+            return(overs + balls)
+
 # Define the class for a player
 class Cricketer:
     def __init__(self, player_id):
@@ -14,6 +24,7 @@ class Cricketer:
         if self.id:
             self.base_player_url = 'http://www.espncricinfo.com/ci/content/player/%s.html' % self.id
             self.test_innings_by_innings_url = 'http://stats.espncricinfo.com/ci/engine/player/%s.html?class=1;template=results;type=allround;view=innings' % self.id
+            self.test_bowling_innings_url = 'http://stats.espncricinfo.com/ci/engine/player/%s.html?class=1;template=results;type=bowling;view=innings' % self.id
         
         if self.test_innings_by_innings_url:
             self.soup = BeautifulSoup(requests.get(self.test_innings_by_innings_url).text, features="html.parser")
@@ -165,3 +176,19 @@ class Cricketer:
             matches[obj.id] = obj
             
         return(matches)
+    
+    def test_bowling_innings(self):
+        soup = BeautifulSoup(requests.get(self.test_bowling_innings_url).text, features="html.parser")
+        for caption in soup.find_all('caption'):
+            if caption.get_text() == 'Innings by innings list':
+                main_table = caption.find_parent('table', {'class': 'engineTable'})
+                
+        all_table_rows = main_table.find_all('tr')
+        columns = [h.text.lower().replace(' ', '_') for h in main_table.find('tr', {'class':'headlinks'}).find_all('th')]
+        rows_raw = [[y.text for y in x.find_all('td')] for x in all_table_rows if x.find_all('td') != []]
+        df = pd.DataFrame(rows_raw, columns = columns).drop('', axis = 1).set_index('start_date')
+        df.index = pd.to_datetime(df.index)
+        df = df[df.overs != 'DNB']
+        df.wkts = df.wkts.astype(int)
+        df['total_balls'] = df.overs.apply(total_balls)
+        return(df)
