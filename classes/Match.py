@@ -5,6 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 import re 
 from .Innings import Innings 
+import json
 
 
 # Define the class that represents a match 
@@ -16,6 +17,13 @@ class Match():
         self.innings_soup = self.soup.find_all('article', {"class": "sub-module scorecard"})
         self.n_innings = len(self.innings_soup)
         self.result = self.soup.find('span', {'class':'cscore_notes_game'}).text
+        self.details_json = json.loads(requests.get('http://www.espncricinfo.com/ci/engine/match/%s.json' % self.id).text)
+        
+        if self.details_json:
+            self.continent = self.details_json['match']['continent_name']
+            self.teams = self.details_json['series'][0]['teams']
+            self.home_team = [team for team in self.teams if team['host_team'] == '1']
+            self.away_team = [team for team in self.teams if team['host_team'] == '0']
         
     def first_innings(self):
         '''Get an Innings object for the first innings'''
