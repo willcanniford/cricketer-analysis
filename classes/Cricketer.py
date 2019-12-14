@@ -32,6 +32,8 @@ class Cricketer:
             
         if self.base_player_url:
             self.primary_team = BeautifulSoup(requests.get(self.base_player_url).text, features="html.parser").find('h3', {'class':'PlayersSearchLink'}).text
+            self.player_details = self.get_player_details()
+            
     
     def raw_innings(self):
         '''Search the raw html and return innings table'''
@@ -196,3 +198,14 @@ class Cricketer:
         df.wkts = df.wkts.astype(int)
         df['total_balls'] = df.overs.apply(total_balls)
         return(df)
+    
+    def get_player_details(self):
+        '''Get the player roles and styles from the base_url'''
+        player2soup = BeautifulSoup(requests.get(self.base_player_url).text, features="html.parser")
+
+        details = {}
+        for detail in player2soup.find_all('p', {'class':'ciPlayerinformationtxt'}):
+                if detail.find('b').text in ['Playing role', 'Batting style', 'Bowling style']:
+                    details[detail.find('b').text] = detail.find('span').text
+                    
+        return(details)
