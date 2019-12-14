@@ -17,6 +17,7 @@ def total_balls(overs):
             balls = int(grouping_re.group(2))
             return(overs + balls)
 
+        
 # Define the class for a player
 class Cricketer:
     def __init__(self, player_id):
@@ -28,6 +29,9 @@ class Cricketer:
         
         if self.test_innings_by_innings_url:
             self.soup = BeautifulSoup(requests.get(self.test_innings_by_innings_url).text, features="html.parser")
+            
+        if self.base_player_url:
+            self.primary_team = BeautifulSoup(requests.get(self.base_player_url).text, features="html.parser").find('h3', {'class':'PlayersSearchLink'}).text
     
     def raw_innings(self):
         '''Search the raw html and return innings table'''
