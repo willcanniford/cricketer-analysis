@@ -250,13 +250,46 @@ class Cricketer:
                     'class': 'headlinks'}).find_all('th')]
         rows_raw = [[y.text for y in x.find_all(
             'td')] for x in all_table_rows if x.find_all('td') != []]
-        df = pd.DataFrame(
+
+        # Find the links to each match
+        match_links = [
+            x.find(
+                'a', {
+                    'title': 'view the scorecard for this row'}) for x in main_table.find_all('tr')]
+        match_urls = ['http://www.espncricinfo.com/' +
+                      x.get('href') for x in match_links if x is not None]
+        df_1 = pd.DataFrame(
             rows_raw, columns=columns).drop(
             '', axis=1).set_index('start_date')
-        df.index = pd.to_datetime(df.index)
+
+        match_urls_df = pd.DataFrame(match_urls, columns=['match_url'])
+        match_urls_df.index = df_1.index
+        df = pd.concat([df_1, match_urls_df], axis=1)
+        df.index = pd.to_datetime(df.index)  # Change the index to datetime
+
+        # Remove the innings where the cricketer didn't bowl
         df = df[df.overs != 'DNB']
+
+        # Convert types and clean columns
         df.wkts = df.wkts.astype(int)
+        df.runs = df.runs.astype(int)
+        df.mdns = df.mdns.astype(int)
+        df.pos = df.pos.astype(int)
+        df.inns = df.inns.astype(int)
+        df.opposition = df.opposition.str.replace('v ', '')
+
+        # Convert the overs notation to total balls bowled
         df['total_balls'] = df.overs.apply(total_balls)
+
+        # Pull and store match object
+        df['match_obj'] = df.match_url.apply(Match)
+
+        # Work out whether game was home or away
+        df['home_team'] = [x.home_team_name for x in df.match_obj]
+        df['home_or_away'] = (
+            df.opposition == df.home_team).apply(
+            lambda x: 'Away' if x else 'Home')
+
         return(df)
 
     def get_player_details(self):
