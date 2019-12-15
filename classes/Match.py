@@ -18,8 +18,12 @@ class Match():
         self.innings_soup = self.soup.find_all(
             'article', {"class": "sub-module scorecard"})
         self.n_innings = len(self.innings_soup)
-        self.result = self.soup.find(
-            'span', {'class': 'cscore_notes_game'}).text
+        self.result_find = self.soup.find(
+            'span', {'class': 'cscore_notes_game'})
+        
+        if self.result_find:
+            self.result = self.result_find.text
+            
         self.details_json = json.loads(
             requests.get(
                 'http://www.espncricinfo.com/ci/engine/match/%s.json' %
@@ -30,12 +34,20 @@ class Match():
             self.teams = self.details_json['series'][0]['teams']
             self.home_team_id = self.details_json['match']['home_team_id']
             self.away_team_id = self.details_json['match']['away_team_id']
-            self.home_team = [
-                team for team in self.teams if team['team_id'] == self.home_team_id]
-            self.away_team = [
-                team for team in self.teams if team['team_id'] == self.away_team_id]
-            self.home_team_name = self.home_team[0]['team_name']
-            self.away_team_name = self.away_team[0]['team_name']
+            
+            # Handle Neutral venues
+            if int(self.home_team_id) != 0:
+                self.home_team = [
+                    team for team in self.teams if team['team_id'] == self.home_team_id]
+                self.away_team = [
+                    team for team in self.teams if team['team_id'] == self.away_team_id]
+                self.home_team_name = self.home_team[0]['team_name']
+                self.away_team_name = self.away_team[0]['team_name']
+            else:
+                self.home_team = 'Neutral'
+                self.home_team_name = 'Neutral'
+                self.away_team = 'Neutral'
+                self.away_team_name = 'Neutral'
 
     def first_innings(self):
         '''Get an Innings object for the first innings'''

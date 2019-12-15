@@ -17,7 +17,17 @@ def total_balls(overs):
         balls = int(grouping_re.group(2))
         return(overs + balls)
 
-
+    
+def helper_home_or_away(row):
+    '''Calculate whether the match was played at home or away'''
+    if row.home_team == 'Neutral':
+        return('Neutral')
+    elif row.opposition == row.home_team:
+        return('Away')
+    else:
+        return('Home')
+    
+    
 # Define the class for a player
 class Cricketer:
     def __init__(self, player_id):
@@ -269,7 +279,8 @@ class Cricketer:
 
         # Remove the innings where the cricketer didn't bowl
         df = df[df.overs != 'DNB']
-
+        df = df[df.overs != 'TDNB']
+        
         # Convert types and clean columns
         df.wkts = df.wkts.astype(int)
         df.runs = df.runs.astype(int)
@@ -286,9 +297,7 @@ class Cricketer:
 
         # Work out whether game was home or away
         df['home_team'] = [x.home_team_name for x in df.match_obj]
-        df['home_or_away'] = (
-            df.opposition == df.home_team).apply(
-            lambda x: 'Away' if x else 'Home')
+        df['home_or_away'] = df.apply(helper_home_or_away, axis = 1)
 
         return(df)
 
