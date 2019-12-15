@@ -23,11 +23,14 @@ class Match():
         
         if self.result_find:
             self.result = self.result_find.text
-            
-        self.details_json = json.loads(
-            requests.get(
+           
+        if requests.get(
                 'http://www.espncricinfo.com/ci/engine/match/%s.json' %
-                self.id).text)
+                self.id):  
+            self.details_json = json.loads(
+                requests.get(
+                    'http://www.espncricinfo.com/ci/engine/match/%s.json' %
+                    self.id).text)
 
         if self.details_json:
             self.continent = self.details_json['match']['continent_name']
