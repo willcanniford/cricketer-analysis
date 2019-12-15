@@ -28,10 +28,14 @@ class Match():
         if self.details_json:
             self.continent = self.details_json['match']['continent_name']
             self.teams = self.details_json['series'][0]['teams']
+            self.home_team_id = self.details_json['match']['home_team_id']
+            self.away_team_id = self.details_json['match']['away_team_id']
             self.home_team = [
-                team for team in self.teams if team['host_team'] == '1']
+                team for team in self.teams if team['team_id'] == self.home_team_id]
             self.away_team = [
-                team for team in self.teams if team['host_team'] == '0']
+                team for team in self.teams if team['team_id'] == self.away_team_id]
+            self.home_team_name = self.home_team[0]['team_name']
+            self.away_team_name = self.away_team[0]['team_name']
 
     def first_innings(self):
         '''Get an Innings object for the first innings'''
