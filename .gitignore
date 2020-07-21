@@ -1,5 +1,6 @@
 .RData
 .RHistory
+.idea
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
