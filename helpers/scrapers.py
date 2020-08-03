@@ -32,6 +32,9 @@ def parse_statistics_table(url, table_caption, home_away=-1):
             table = caption.find_parent(
                 'table', {'class': 'engineTable'})
 
+    if table.find('thead') is None:
+        return None
+
     # Isolate the column names <thead>
     table_thead = table.find('thead').find_all('tr')[0]
     columns = [x.get_text() for x in table_thead.find_all('th')]

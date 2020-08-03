@@ -1,10 +1,14 @@
 import helpers.batting as bat
+import helpers.bowling as bowl
 import helpers.scrapers as scrape
 import matplotlib.pyplot as plt
 import numpy as np
 
-jim_bowling = scrape.get_innings_by_innings_stats(8608, 'Bowling', 'Test', 1)
-print(jim_bowling.head())
+jim_bowling = bowl.test_innings_by_innings(8608, home_or_away=1)
+# print(jim_bowling.head())
+
+
+print(bowl.test_home_or_away(210283))
 
 # Columns to keep
 # How to format each column
@@ -24,4 +28,4 @@ batted = jos.runs.notnull()
 did_not_bat = jos.runs.isnull()
 
 jos_batted = jos[batted]
-print(jos_batted.head())
+# print(jos_batted.head())
