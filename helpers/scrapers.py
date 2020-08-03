@@ -4,7 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 
 
-def parse_statistics_table(url, table_caption):
+def parse_statistics_table(url, table_caption, home_away=-1):
     """
     Scrape a given table via a caption and store using pandas
 
@@ -14,6 +14,9 @@ def parse_statistics_table(url, table_caption):
         URL link where the table is found
     table_caption: str
         HTML caption associated with the table of interest
+    home_away: int
+        1, 2, 3 indicates whether you should filter the final table
+        1 = home, 2 = away, 3 = neutral venue
 
     Returns
     -------
@@ -42,10 +45,13 @@ def parse_statistics_table(url, table_caption):
     # Create pandas data frame and save to csv
     df = pd.DataFrame(rows, columns=columns).apply(pd.to_numeric, errors='ignore')
 
+    if home_away != -1:
+        df['home_or_away'] = "Home" if home_away == 1 else "Away" if home_away == 2 else "Neutral"
+
     return df
 
 
-def get_innings_by_innings_stats(player_id, stats_type, match_format="Test"):
+def get_innings_by_innings_stats(player_id, stats_type, match_format="Test", home_away=-1):
     """
     Return a cleaned version of stats tables for a player
 
@@ -57,21 +63,29 @@ def get_innings_by_innings_stats(player_id, stats_type, match_format="Test"):
         "Batting" or "Bowling" indicating which stats you require
     match_format: str
         "Test" or "ODI" for the format of interest
+    home_away: int
+        1, 2, 3 indicates whether you should filter the final table
+        1 = home, 2 = away, 3 = neutral venue
 
     Returns
-        pandas.DataFrame
     -------
-
+    pandas.DataFrame
+        HTML table as a pandas.DataFrame
     """
     if match_format == "Test":
         url_class = 1
     elif match_format == "ODI":
         url_class = 2
 
+    if home_away == -1:
+        home_or_away = ""
+    else:
+        home_or_away = f"home_or_away={home_away};"
+
     if stats_type == 'Batting':
-        table_url = f'http://stats.espncricinfo.com/ci/engine/player/{player_id}.html?class={url_class};template=results;type=batting;view=innings'
+        table_url = f'http://stats.espncricinfo.com/ci/engine/player/{player_id}.html?class={url_class};{home_or_away}template=results;type=batting;view=innings'
 
     elif stats_type == 'Bowling':
-        table_url = f'http://stats.espncricinfo.com/ci/engine/player/{player_id}.html?class={url_class};template=results;type=bowling;view=innings'
+        table_url = f'http://stats.espncricinfo.com/ci/engine/player/{player_id}.html?class={url_class};{home_or_away}template=results;type=bowling;view=innings'
 
-    return parse_statistics_table(url=table_url, table_caption='Innings by innings list')
+    return parse_statistics_table(url=table_url, table_caption='Innings by innings list', home_away=home_away)

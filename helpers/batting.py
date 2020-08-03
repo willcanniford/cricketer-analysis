@@ -11,8 +11,8 @@ default_renames = {"4s": "fours",
 default_deletes = ['nan', 'DNB']
 
 
-def test_innings_by_innings(player_id, column_rename=default_renames, score_deletes=default_deletes):
-    raw_table = get_innings_by_innings_stats(player_id, 'Batting', 'Test')
+def test_innings_by_innings(player_id, column_rename=default_renames, score_deletes=default_deletes, home_or_away=-1):
+    raw_table = get_innings_by_innings_stats(player_id, 'Batting', 'Test', home_or_away)
     raw_table.replace('-', np.nan, inplace=True)
     raw_table.columns = raw_table.columns.str.lower().str.replace(' ', '_')
 
@@ -35,8 +35,8 @@ def test_innings_by_innings(player_id, column_rename=default_renames, score_dele
     return raw_table
 
 
-def odi_innings_by_innings(player_id, column_rename=default_renames, score_deletes=default_deletes):
-    raw_table = get_innings_by_innings_stats(player_id, 'Batting', 'ODI')
+def odi_innings_by_innings(player_id, column_rename=default_renames, score_deletes=default_deletes, home_or_away=-1):
+    raw_table = get_innings_by_innings_stats(player_id, 'Batting', 'ODI', home_or_away)
     raw_table.replace('-', np.nan, inplace=True)
     raw_table.columns = raw_table.columns.str.lower().str.replace(' ', '_')
 
