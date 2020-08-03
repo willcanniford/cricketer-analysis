@@ -45,7 +45,7 @@ def parse_statistics_table(url, table_caption):
     return df
 
 
-def get_innings_by_innings_stats(player_id, stats_type):
+def get_innings_by_innings_stats(player_id, stats_type, match_format="Test"):
     """
     Return a cleaned version of stats tables for a player
 
@@ -55,17 +55,23 @@ def get_innings_by_innings_stats(player_id, stats_type):
         The ESPN id for the given cricketer
     stats_type: str
         "Batting" or "Bowling" indicating which stats you require
+    match_format: str
+        "Test" or "ODI" for the format of interest
 
     Returns
         pandas.DataFrame
     -------
 
     """
+    if match_format == "Test":
+        url_class = 1
+    elif match_format == "ODI":
+        url_class = 2
+
     if stats_type == 'Batting':
-        table_url = f'http://stats.espncricinfo.com/ci/engine/player/{player_id}.html?class=1;template=results;type=batting' \
-                    f';view=innings'
+        table_url = f'http://stats.espncricinfo.com/ci/engine/player/{player_id}.html?class={url_class};template=results;type=batting;view=innings'
 
     elif stats_type == 'Bowling':
-        table_url = f'http://stats.espncricinfo.com/ci/engine/player/{player_id}.html?class=1;template=results;type=bowling;view=innings'
+        table_url = f'http://stats.espncricinfo.com/ci/engine/player/{player_id}.html?class={url_class};template=results;type=bowling;view=innings'
 
     return parse_statistics_table(url=table_url, table_caption='Innings by innings list')
