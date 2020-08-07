@@ -4,11 +4,10 @@ import helpers.scrapers as scrape
 import matplotlib.pyplot as plt
 import numpy as np
 
-jim_bowling = bowl.test_innings_by_innings(8608, home_or_away=1)
+# jim_bowling = bowl.test_innings_by_innings(8608, home_or_away=1)
 # print(jim_bowling.head())
+# print(bowl.test_home_or_away(210283))
 
-
-print(bowl.test_home_or_away(210283))
 
 # Columns to keep
 # How to format each column
@@ -21,11 +20,22 @@ schema = {
     "na_values": ['DNB']
 }
 
-innings = bat.test_innings_by_innings(519082)
-jos = bat.odi_innings_by_innings(308967, home_or_away=2)
+# innings = bat.test_innings_by_innings(519082)
+# jos = bat.odi_innings_by_innings(308967, home_or_away=2)
 
-batted = jos.runs.notnull()
-did_not_bat = jos.runs.isnull()
+# batted = jos.runs.notnull()
+# did_not_bat = jos.runs.isnull()
 
-jos_batted = jos[batted]
+# jos_batted = jos[batted]
 # print(jos_batted.head())
+
+morgan = bat.odi_innings_by_innings(24598)
+morgan_trim = morgan[morgan.score.notnull()]
+print(morgan.head())
+
+# plt.scatter(morgan_trim.score.astype(int), morgan_trim.balls_faced.astype(int))
+# plt.hist(morgan_trim.score.astype(int), bins=30)
+# plt.xlabel('Runs')
+# plt.show()
+
+print(bat.summarise(morgan))
