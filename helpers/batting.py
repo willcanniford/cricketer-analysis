@@ -75,6 +75,7 @@ def summarise(innings_by_innings_table):
         "matches": len(innings_by_innings_table.index),
         "innings": sum(innings_by_innings_table.did_bat),
         "runs": sum(scores),
+        "strike_rate": sum(scores) / sum(did_bat.balls_faced.astype(int)),
         "high_score": max(scores),
         "balls_faced": sum(did_bat.balls_faced.astype(int)),
         "50s": sum(innings_by_innings_table.is_fifty),
